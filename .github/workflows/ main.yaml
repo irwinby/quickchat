@@ -1,0 +1,54 @@
+name: "Verify the code by running linters, tests, and ensuring that it builds successfully"
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.6.0
+      - uses: actions/setup-go@v3.5.0
+        with:
+          go-version: 1.19.x
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.0.x
+      - run: cd backend/ && go mod download
+      - run: cd frontend/ && bun install
+      - run: make build
+
+  lint:
+    name: lint
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.6.0
+      - uses: actions/setup-go@v3.5.0
+        with:
+          go-version: 1.19.x
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.0.x
+      - run: cd backend/ && go mod download
+      - run: cd frontend/ && bun install
+      - uses: golangci/golangci-lint-action@v3.3.1
+        with:
+          working-directory: backend
+          version: v1.50.1
+      - run: bun install -g eslint
+      - run: cd frontend/ && eslint .
+
+  test:
+    name: test
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.6.0
+      - uses: actions/setup-go@v3.5.0
+        with:
+          go-version: 1.19.x
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.0.x
+      - run: cd backend/ && go mod download
+      - run: cd frontend/ && bun install
+      - run: make test
